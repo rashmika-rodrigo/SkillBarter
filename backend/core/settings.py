@@ -133,14 +133,19 @@ AUTH_USER_MODEL = 'api.User'
 # CORS Settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", 
+    "http://localhost:5173",                     # For Local Development
+    "https://skillbarter-webapp.onrender.com",   # Live frontend (webApp)
 ]
 
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173", 
+    "http://localhost:5173",                     # For Local Development
+    "https://skillbarter-webapp.onrender.com",   # Live frontend (webApp)
 ]
+
+
+ALLOWED_HOSTS = ['*'] # Allows Render to serve the app
 
 
 CSRF_COOKIE_HTTPONLY = False 
