@@ -14,8 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # CORE SETTINGS
 # ====================================================
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
-ALLOWED_HOSTS = ['*'] 
+# Render sets DEBUG=False. Local .env sets DEBUG=True
+DEBUG = os.getenv('DEBUG') == 'True' 
+
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -30,7 +32,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', 
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -63,15 +65,17 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ====================================================
 # DATABASE
 # ====================================================
+# This connects to the Online DB (if DATABASE_URL is in .env or Render Env)
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True  # Required for Render Postgres
     )
 }
 
 # ====================================================
-# AUTH & USER
+# AUTH
 # ====================================================
 AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
@@ -79,6 +83,7 @@ AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
     { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
+
 AUTH_USER_MODEL = 'api.User'
 
 LANGUAGE_CODE = 'en-us'
@@ -94,30 +99,50 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ====================================================
-# SECURITY & PRODUCTION CONFIG (THE FIX)
+# SECURITY CONFIG (THE FIX)
 # ====================================================
 
-# CORS: Allow Frontend
+# 1. CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
     "https://skillbarter-webapp.onrender.com",
+    "http://localhost:5173",
 ]
 
-# CSRF: Trusted Origins
+# 2. CSRF
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
     "https://skillbarter-webapp.onrender.com",
+    "http://localhost:5173",
 ]
 
-# COOKIES (The "SameSite" Strategy)
+# 3. COOKIES (The Missing Piece!)
+# You removed 'Secure=True', which caused the bug.
+# Browsers REQUIRE 'Secure=True' if 'SameSite=None'.
 CSRF_COOKIE_HTTPONLY = False 
-CSRF_COOKIE_SAMESITE = 'None' 
-CSRF_COOKIE_SECURE = True 
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True  # <--- MUST BE TRUE
 
 SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True # <--- MUST BE TRUE
 
-# HTTPS PROXY
+# 4. HTTPS PROXY
+# Required for Render to tell Django "This is HTTPS"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True # Force HTTPS
+
+# Only force HTTPS redirect in production (so localhost doesn't break)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+else:
+    SECURE_SSL_REDIRECT = False
+
+# ====================================================
+# DRF CONFIG
+# ====================================================
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
