@@ -130,27 +130,34 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'api.User'
 
 
-# CORS Settings
+# -- CORS & SECURITY SETTINGS (Production Ready)--
+
+# Who can talk to us?
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",                     # For Local Development
-    "https://skillbarter-webapp.onrender.com",   # Live frontend (webApp)
+    "http://localhost:5173", # Local Development
+    "https://skillbarter-webapp.onrender.com", # LIVE FRONTEND
 ]
 
-
-# CSRF Settings
+# Who can send POST requests?
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",                     # For Local Development
-    "https://skillbarter-webapp.onrender.com",   # Live frontend (webApp)
+    "http://localhost:5173", # Local Development
+    "https://skillbarter-webapp.onrender.com", # LIVE FRONTEND
 ]
 
 
-ALLOWED_HOSTS = ['*'] # Allows Render to serve the app
+ALLOWED_HOSTS = ['*']
 
 
+# Must allow cookies to travel between the Frontend and Backend URLs.
 CSRF_COOKIE_HTTPONLY = False 
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' 
+CSRF_COOKIE_SECURE = True  # Required if SameSite='None'
+
+
+# Session cookie (Login status) needs the same rules
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
