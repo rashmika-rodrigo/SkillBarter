@@ -69,7 +69,6 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@ensure_csrf_cookie
 def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -85,7 +84,6 @@ def login_view(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@ensure_csrf_cookie
 def register_view(request):
     username = request.data.get('username')
     email = request.data.get('email')
@@ -103,5 +101,6 @@ def register_view(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@ensure_csrf_cookie
 def get_csrf_token(request):
     return JsonResponse({'csrfToken': get_token(request)})

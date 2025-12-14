@@ -119,33 +119,71 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ====================================================
-# SECURITY & PRODUCTION CONFIG (CORS / CSRF)
+# SECURITY & PRODUCTION CONFIG
 # ====================================================
 
-# CORS: Who can fetch data? (Frontend Origin)
+# CORS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",                     # Local Development
-    "https://skillbarter-webapp.onrender.com",   # LIVE FRONTEND 
+    "http://localhost:5173",
+    "https://skillbarter-webapp.onrender.com",
 ]
 
-# 2. CSRF: Who can submit forms? (Frontend Origin)
+# CSRF
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
-    "https://skillbarter-webapp.onrender.com",   # LIVE FRONTEND 
+    "https://skillbarter-webapp.onrender.com",
 ]
 
-# COOKIE SECURITY (Required for Cross-Origin HTTPS)
-# Must allow cookies to travel between the Frontend and Backend URLs.
-CSRF_COOKIE_HTTPONLY = False 
-CSRF_COOKIE_SAMESITE = 'None' 
-CSRF_COOKIE_SECURE = True  # Required if SameSite='None'
+# Hosts
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "skillbarter-backend-5i7n.onrender.com",
+]
 
-# Session cookie (Login status) needs the same rules
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
+# ============================
+# COOKIE CONFIG
+# ============================
 
-# RENDER HTTPS PROXY
-# Tell Django to trust the "X-Forwarded-Proto" header coming from Render
+if DEBUG:
+    # Local development
+    CSRF_COOKIE_DOMAIN = None
+    SESSION_COOKIE_DOMAIN = None
+
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+else:
+    # Production (Render)
+    CSRF_COOKIE_DOMAIN = ".onrender.com"
+    SESSION_COOKIE_DOMAIN = ".onrender.com"
+
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "None"
+
+# ============================
+# PROXY / HTTPS
+# ============================
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+
+# Only force HTTPS in production
+SECURE_SSL_REDIRECT = not DEBUG
+
+
+# ====================================================
+# DJANGO REST FRAMEWORK
+# ====================================================
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+}
