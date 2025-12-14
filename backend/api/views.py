@@ -97,10 +97,5 @@ def register_view(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@ensure_csrf_cookie
 def get_csrf_token(request):
-    """
-    Returns the CSRF token in the body AND sets the cookie.
-    Frontend needs to call this once on startup.
-    """
     return JsonResponse({'csrfToken': get_token(request)})

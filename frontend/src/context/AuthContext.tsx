@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
-  refreshUser: () => Promise<void>; 
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -20,14 +20,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await api.get("csrf/");
+        // Fetch CSRF Token manually
+        const response = await api.get("csrf/"); 
+        const token = response.data.csrfToken;
+
+        if (token) {
+            api.defaults.headers.common['X-CSRFToken'] = token;
+            console.log("CSRF Token manually set via header");
+        }
+
+        // Then check for user
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
-      } catch (error) {
+      } 
+      catch (error) {
         console.error("Auth init failed", error);
-      } finally {
+      } 
+      finally {
         setIsLoading(false);
       }
     };
@@ -45,17 +56,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/login';
   };
 
-  // Fetches the latest user data from the server
   const refreshUser = async () => {
     if (!user) return;
     try {
       const response = await api.get(`users/${user.id}/`);
-      const updatedUser = response.data;
-      setUser(updatedUser); // Update State & LocalStorage
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    } 
-    catch (error) {
-      console.error("Failed to refresh user data", error);
+      setUser(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
+    } catch (error) {
+      console.error("Failed to refresh user", error);
     }
   };
 
