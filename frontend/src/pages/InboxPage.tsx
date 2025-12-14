@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Mail, CheckCircle, XCircle, Clock } from 'lucide-react';
 import api from '../lib/axios';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
 
 // Define the Swap Type based on Django response
 interface Swap {
@@ -24,9 +24,11 @@ const InboxPage = () => {
     try {
       const response = await api.get('swaps/');
       setSwaps(response.data);
-    } catch (error) {
+    } 
+    catch (error) {
       console.error("Error fetching swaps", error);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   }; 
@@ -40,8 +42,7 @@ const InboxPage = () => {
     try {
       await api.patch(`swaps/${id}/`, { status: newStatus });
       
-      // Refresh the list to show the new badge
-      await fetchSwaps(); 
+      await fetchSwaps(); // Refresh the list to show the new badge
 
       // If Accepted, refresh the Wallet!
       if (newStatus === 'ACCEPTED') {
@@ -52,7 +53,8 @@ const InboxPage = () => {
       // Check if the backend sent a specific error message
       if (error.response?.data && Array.isArray(error.response.data)) {
         alert(error.response.data[0]); // "Requester does not have enough Karma credits!"
-      } else {
+      } 
+      else {
         alert("Failed to update status");
       }
     }
@@ -60,10 +62,18 @@ const InboxPage = () => {
 
   if (!user) return null;
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh] animate-fade-in">
+        <div className="text-muted text-lg">Loading your inbox...</div>
+      </div>
+    );
+  }
+
   // Filter client-side
   const incoming = swaps.filter(s => s.provider_info.username === user.username);
   const sent = swaps.filter(s => s.requester_info.username === user.username);
-  
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
