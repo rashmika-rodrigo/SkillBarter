@@ -6,28 +6,17 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ====================================================
 # CORE SETTINGS
 # ====================================================
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# We check if the string "True" is in the .env file (Local = True, Render = False usually)
 DEBUG = os.getenv('DEBUG') == 'True'
+ALLOWED_HOSTS = ['*'] 
 
-# Allow Render and Localhost to host the app
-ALLOWED_HOSTS = ['*']
-
-
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,19 +24,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # 3rd Party
     'rest_framework',
     'corsheaders',
-
-    # My App
     'api',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',                     
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',                
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,9 +60,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
 # ====================================================
-# DATABASE (SQLite Locally, Postgres on Render)
+# DATABASE
 # ====================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -86,9 +70,8 @@ DATABASES = {
     )
 }
 
-
 # ====================================================
-# AUTHENTICATION
+# AUTH & USER
 # ====================================================
 AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
@@ -96,89 +79,52 @@ AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
     { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
-
-# Tell Django to use my custom User model 
 AUTH_USER_MODEL = 'api.User'
 
-
-# ====================================================
-# INTERNATIONALIZATION
-# ====================================================
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-
 # ====================================================
-# STATIC FILES (CSS, JavaScript, Images)
+# STATIC FILES
 # ====================================================
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
 # ====================================================
-# SECURITY & PRODUCTION CONFIG
+# SECURITY & PRODUCTION CONFIG (THE FIX)
 # ====================================================
 
-# CORS
+# CORS: Allow Frontend
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://skillbarter-webapp.onrender.com",
 ]
 
-# CSRF
+# CSRF: Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://skillbarter-webapp.onrender.com",
 ]
 
-# Hosts
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "skillbarter-backend-5i7n.onrender.com",
-]
+# COOKIES (The "SameSite" Strategy)
+CSRF_COOKIE_HTTPONLY = False 
+CSRF_COOKIE_SAMESITE = 'None' 
+CSRF_COOKIE_SECURE = True 
 
-# ============================
-# COOKIE CONFIG
-# ============================
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
-if DEBUG:
-    # Local development
-    CSRF_COOKIE_DOMAIN = None
-    SESSION_COOKIE_DOMAIN = None
-
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
-else:
-    # Production (Render)
-    CSRF_COOKIE_DOMAIN = ".onrender.com"
-    SESSION_COOKIE_DOMAIN = ".onrender.com"
-
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SAMESITE = "None"
-
-# ============================
-# PROXY / HTTPS
-# ============================
-
+# HTTPS PROXY
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Only force HTTPS in production
-SECURE_SSL_REDIRECT = not DEBUG
-
+SECURE_SSL_REDIRECT = True # Force HTTPS
 
 # ====================================================
-# DJANGO REST FRAMEWORK
+# DRF CONFIG
 # ====================================================
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
