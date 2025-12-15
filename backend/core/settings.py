@@ -106,13 +106,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://skillbarter-webapp.onrender.com",
-    "http://localhost:5173",
 ]
 
 # 2. CSRF
 CSRF_TRUSTED_ORIGINS = [
     "https://skillbarter-webapp.onrender.com",
-    "http://localhost:5173",
 ]
 
 # 3. COOKIES (The Missing Piece!)
