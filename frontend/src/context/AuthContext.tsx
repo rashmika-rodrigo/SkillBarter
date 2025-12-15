@@ -1,3 +1,4 @@
+/* frontend/src/context/AuthContext.tsx */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User } from '../types';
 import api from '../lib/axios';
@@ -6,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
-  refreshUser: () => Promise<void>; 
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -16,18 +17,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initial load
+  // Initial load: MANUAL HANDSHAKE
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await api.get("csrf/");
+        console.log("🔄 initializing Auth & Fetching CSRF...");
+        
+        // Fetch CSRF Token from JSON
+        const response = await api.get("csrf/"); 
+        const token = response.data.csrfToken;
+
+        console.log("CSRF Token Received:", token);
+
+        // Manually set header
+        if (token) {
+            api.defaults.headers.common['X-CSRFToken'] = token;
+        }
+
+        // Load user
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
       } 
       catch (error) {
-        console.error("Auth init failed", error);
+        console.error("Auth init failed:", error);
       } 
       finally {
         setIsLoading(false);
@@ -47,17 +61,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/login';
   };
 
-  // Fetches the latest user data from the server
   const refreshUser = async () => {
     if (!user) return;
     try {
       const response = await api.get(`users/${user.id}/`);
-      const updatedUser = response.data;
-      setUser(updatedUser); // Update State & LocalStorage
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    } 
-    catch (error) {
-      console.error("Failed to refresh user data", error);
+      setUser(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
+    } catch (error) {
+      console.error("Failed to refresh user", error);
     }
   };
 

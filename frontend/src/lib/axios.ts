@@ -1,25 +1,28 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
 
 const api = axios.create({
-  baseURL: 'https://skillbarter-backend-5i7n.onrender.com/api/',
-  withCredentials: true,
+  baseURL: BASE_URL,
+  withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Required for Django CSRF
-api.defaults.xsrfCookieName = "csrftoken";
-api.defaults.xsrfHeaderName = "X-CSRFToken";
-
-// Force attach CSRF header on every request
-api.interceptors.request.use((config) => {
-  const token = Cookies.get('csrftoken');
-  if (token) {
-    config.headers['X-CSRFToken'] = token;
+// Response Interceptor (Handle Logout on 401)
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // If Backend says "Unauthorized", log the user out on frontend
+    if (error.response?.status === 401) {
+       localStorage.removeItem('user');
+       if (!window.location.pathname.includes('/login')) {
+         window.location.href = '/login';
+       }
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export default api;
