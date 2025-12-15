@@ -22,9 +22,15 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('register/', formData); // Send data to Django
-      login(response.data); // Log them in immediately
-      navigate('/'); // Redirect to Home
+      const response = await api.post('register/', formData); 
+      
+      // Save token for Axios 
+      if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+      }
+      
+      login(response.data); 
+      navigate('/'); 
     } 
     catch (err: any) {
       setError(err.response?.data?.error || 'Error in Registration');

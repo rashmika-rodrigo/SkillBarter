@@ -20,8 +20,10 @@ const LoginPage = () => {
 
     try {
       const response = await api.post('login/', { username, password });
+      // This guarantees the token is available for axios.ts immediately
+      localStorage.setItem('token', response.data.token); 
       login(response.data); // Update global auth state
-      navigate('/');  // Redirect home
+      navigate('/'); // Redirect home
     } 
     catch (err) {
       console.error(err); 
