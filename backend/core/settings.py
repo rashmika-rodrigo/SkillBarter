@@ -14,11 +14,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # CORE SETTINGS
 # ====================================================
 SECRET_KEY = os.getenv('SECRET_KEY')
-# Render sets DEBUG=False. Local .env sets DEBUG=True
-DEBUG = os.getenv('DEBUG') == 'True' 
+DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '*',  # Render uses dynamic hostnames
+]
 
+# ====================================================
+# INSTALLED APPS
+# ====================================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -26,21 +30,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'corsheaders',
     'api',
 ]
 
+# ====================================================
+# MIDDLEWARE
+# ====================================================
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',    
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -65,76 +73,71 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ====================================================
 # DATABASE
 # ====================================================
-# This connects to the Online DB (if DATABASE_URL is in .env or Render Env)
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True  # Required for Render Postgres
+        ssl_require=True
     )
 }
 
 # ====================================================
 # AUTH
 # ====================================================
-AUTH_PASSWORD_VALIDATORS = [
-    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
-    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
-]
-
 AUTH_USER_MODEL = 'api.User'
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
 
 # ====================================================
 # STATIC FILES
 # ====================================================
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ====================================================
-# SECURITY CONFIG (THE FIX)
+# CORS + CSRF 
 # ====================================================
 
-# 1. CORS
 CORS_ALLOW_CREDENTIALS = True
+
+# Allow the frontend
 CORS_ALLOWED_ORIGINS = [
     "https://skillbarter-webapp.onrender.com",
 ]
 
-# 2. CSRF
-CSRF_TRUSTED_ORIGINS = [
-    "https://skillbarter-webapp.onrender.com",
+# Allow Render internal proxy domains
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
 ]
 
-# 3. COOKIES (The Missing Piece!)
-# You removed 'Secure=True', which caused the bug.
-# Browsers REQUIRE 'Secure=True' if 'SameSite=None'.
-CSRF_COOKIE_HTTPONLY = False 
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = True  # <--- MUST BE TRUE
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    "https://skillbarter-webapp.onrender.com",
+    "https://skillbarter-backend-5i7n.onrender.com",
+    "https://*.onrender.com",
+]
 
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True # <--- MUST BE TRUE
 
-# 4. HTTPS PROXY
-# Required for Render to tell Django "This is HTTPS"
+# Cookies must be secure for cross-site
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "None"
+
+CSRF_COOKIE_HTTPONLY = False  # React needs access
+
+# ====================================================
+# HTTPS / PROXY
+# ====================================================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Only force HTTPS redirect in production (so localhost doesn't break)
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
 else:
     SECURE_SSL_REDIRECT = False
 
 # ====================================================
-# DRF CONFIG
+# DRF
 # ====================================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
