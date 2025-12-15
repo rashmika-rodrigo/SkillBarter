@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenTool, BookOpen, GraduationCap, AlertCircle } from 'lucide-react';
 import api from '../lib/axios';
+import Cookies from 'js-cookie';
 
 const CreateSkillPage = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const CreateSkillPage = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'TEACH' // Default option
+    category: 'TEACH'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,17 +21,28 @@ const CreateSkillPage = () => {
     setError('');
 
     try {
-      await api.post('skills/', formData);
-      navigate('/'); // Go back to home
+      const csrfToken = Cookies.get('csrftoken');
+
+      await api.post(
+        'skills/',
+        formData,
+        {
+          headers: {
+            'X-CSRFToken': csrfToken
+          }
+        }
+      );
+
+      navigate('/');
     } 
     catch (err) {
+      console.error(err);
       setError('Failed to create skill. Please try again.');
     } 
     finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6 animate-fade-in">
@@ -73,7 +85,8 @@ const CreateSkillPage = () => {
                   formData.category === 'LEARN' 
                     ? 'bg-secondary/10 border-secondary text-secondary' 
                     : 'bg-background border-white/5 text-muted hover:border-white/10'
-                }`}>
+                }`}
+              >
                 <BookOpen size={24} />
                 <span className="font-semibold">Learn a Skill</span>
               </button>
