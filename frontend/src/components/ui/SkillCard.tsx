@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, GraduationCap, Handshake, X, Phone, MessageSquare, Repeat } from 'lucide-react';
+// Added Trash2 to imports
+import { BookOpen, GraduationCap, Handshake, X, Phone, MessageSquare, Repeat, Trash2 } from 'lucide-react';
 import type { Skill } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/axios';
@@ -11,6 +12,8 @@ interface SkillCardProps {
 const SkillCard = ({ skill }: SkillCardProps) => {
   const { user } = useAuth();
   const isTeacher = skill.category === 'TEACH';
+  
+  // Check if this card belongs to the logged-in user
   const isMySkill = user?.username === skill.user_info.username;
 
   // Modal State
@@ -22,6 +25,21 @@ const SkillCard = ({ skill }: SkillCardProps) => {
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
 
+  // Delete card function
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this skill?")) return;
+
+    try {
+      await api.delete(`skills/${skill.id}/`); 
+      alert("Skill deleted successfully!");
+      // Simple reload to update the UI immediately
+      window.location.reload(); 
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete skill.");
+    }
+  };
+
   const handleRequestSwap = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -32,14 +50,12 @@ const SkillCard = ({ skill }: SkillCardProps) => {
     setLoading(true);
 
     try {
-      // Pack all the data into one message string
       const fullMessage = `
         📞 Contact: ${phone}
         🔄 Proposal: ${proposal}
         📝 Note: ${note}
       `.trim();
 
-      // Send to Backend
       await api.post('swaps/', {
         skill: skill.id,
         provider: skill.user_info.id,
@@ -47,9 +63,7 @@ const SkillCard = ({ skill }: SkillCardProps) => {
       });
 
       alert("Swap request sent successfully! Check your Inbox.");
-      setIsModalOpen(false); // Close modal
-      
-      // Reset form
+      setIsModalOpen(false); 
       setProposal('');
       setPhone('');
       setNote('');
@@ -66,7 +80,7 @@ const SkillCard = ({ skill }: SkillCardProps) => {
 
   return (
     <>
-      {/*  CARD UI */}
+      {/* CARD UI */}
       <div className="group bg-surface border border-white/5 rounded-2xl p-6 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 flex flex-col h-full relative">
         
         {/* Header */}
@@ -103,9 +117,18 @@ const SkillCard = ({ skill }: SkillCardProps) => {
             {new Date(skill.created_at).toLocaleDateString()}
           </span>
           
-          {!isMySkill && (
+          {/* LOGIC: Show Delete if it's mine, otherwise Show Swap */}
+          {isMySkill ? (
             <button 
-              onClick={() => setIsModalOpen(true)} // Open Modal
+              onClick={handleDelete} 
+              className="flex items-center gap-2 text-sm font-medium text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-2 rounded-lg transition-all"
+            >
+              <Trash2 size={18} />
+              Delete
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsModalOpen(true)} 
               className="flex items-center gap-2 text-sm font-medium text-primary hover:text-white bg-primary/10 hover:bg-primary px-3 py-2 rounded-lg transition-all"
             >
               <Handshake size={18} />
@@ -115,12 +138,11 @@ const SkillCard = ({ skill }: SkillCardProps) => {
         </div>
       </div>
 
-      {/*  MODAL FORM UI */}
+      {/* MODAL FORM UI */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
             
-            {/* Close Button */}
             <button 
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-muted hover:text-white transition-colors"
@@ -133,13 +155,10 @@ const SkillCard = ({ skill }: SkillCardProps) => {
 
             <form onSubmit={handleRequestSwap} className="space-y-4">
               
-              {/* Dynamic Proposal Field */}
               <div>
                 <label className="block text-sm font-medium text-muted mb-1 flex items-center gap-2">
                   <Repeat size={14} />
-                  {isTeacher 
-                    ? "What skill can you TEACH in return?" 
-                    : "What do you expect in return?"}
+                  {isTeacher ? "What skill can you TEACH in return?" : "What do you expect in return?"}
                 </label>
                 <input 
                   type="text" 
@@ -151,7 +170,6 @@ const SkillCard = ({ skill }: SkillCardProps) => {
                 />
               </div>
 
-              {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-muted mb-1 flex items-center gap-2">
                   <Phone size={14} /> Contact Number
@@ -166,7 +184,6 @@ const SkillCard = ({ skill }: SkillCardProps) => {
                 />
               </div>
 
-              {/* Short Message */}
               <div>
                 <label className="block text-sm font-medium text-muted mb-1 flex items-center gap-2">
                   <MessageSquare size={14} /> Short Message
@@ -180,7 +197,6 @@ const SkillCard = ({ skill }: SkillCardProps) => {
                 />
               </div>
 
-              {/* Submit Button */}
               <button 
                 type="submit"
                 disabled={loading}

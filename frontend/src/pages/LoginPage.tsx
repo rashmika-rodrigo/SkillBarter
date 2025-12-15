@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Shield, Lock, User as UserIcon, AlertCircle, ArrowRight } from 'lucide-react';
 import api from '../lib/axios';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
-  const navigate = useNavigate();
   const { login } = useAuth(); 
 
   const [username, setUsername] = useState('');
@@ -15,15 +14,18 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    // clearing the memory after clicked on Login (should clean before try to log in again)
+    localStorage.removeItem('token'); 
+    localStorage.removeItem('user');
     setError('');
     setLoading(true);
 
     try {
       const response = await api.post('login/', { username, password });
-      // This guarantees the token is available for axios.ts immediately
+      // Guarantees the token is available for axios.ts immediately
       localStorage.setItem('token', response.data.token); 
-      login(response.data); // Update global auth state
-      navigate('/'); // Redirect home
+      login(response.data); 
+      window.location.href = '/'; // Redirect to home with a refresh
     } 
     catch (err) {
       console.error(err); 

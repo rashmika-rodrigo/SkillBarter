@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Shield, User as UserIcon, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import api from '../lib/axios';
 import { useAuth } from '../context/AuthContext';
 
 const SignupPage = () => {
-  const navigate = useNavigate();
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -30,7 +29,7 @@ const SignupPage = () => {
       }
       
       login(response.data); 
-      navigate('/'); 
+      window.location.href = '/'; 
     } 
     catch (err: any) {
       setError(err.response?.data?.error || 'Error in Registration');
