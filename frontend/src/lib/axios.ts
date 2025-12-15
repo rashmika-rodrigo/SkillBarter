@@ -9,14 +9,17 @@ const api = axios.create({
   },
 });
 
+// Required for Django CSRF
+api.defaults.xsrfCookieName = "csrftoken";
+api.defaults.xsrfHeaderName = "X-CSRFToken";
+
+// Force attach CSRF header on every request
 api.interceptors.request.use((config) => {
   const token = Cookies.get('csrftoken');
   if (token) {
     config.headers['X-CSRFToken'] = token;
   }
   return config;
-}, (error) => {
-  return Promise.reject(error);
 });
 
 export default api;
