@@ -13,16 +13,13 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // clearing the memory after clicked on Login (should clean before try to log in again)
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('user');
+    e.preventDefault(); 
     setError('');
     setLoading(true);
 
     try {
       const response = await api.post('login/', { username, password });
-      // Guarantees the token is available for axios.ts immediately
+      // Token is available for axios.ts immediately
       localStorage.setItem('token', response.data.token); 
       login(response.data); 
       window.location.href = '/'; // Redirect to home with a refresh
@@ -30,6 +27,8 @@ const LoginPage = () => {
     catch (err) {
       console.error(err); 
       setError('Invalid username or password');
+      localStorage.removeItem('token',); 
+      localStorage.removeItem('user');
     } 
     finally {
       setLoading(false);

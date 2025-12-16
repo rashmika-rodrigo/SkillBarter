@@ -10,13 +10,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 # Skill Serializer
 class SkillSerializer(serializers.ModelSerializer):
-    # Should see the User's name, not their ID (1, 2, 3, 4...)
     user_info = UserSerializer(source='user', read_only=True)
 
     class Meta:
         model = Skill
         fields = ['id', 'user', 'user_info', 'title', 'description', 'category', 'created_at']
-        read_only_fields = ['user'] # The backend will fill this automatically
+        read_only_fields = ['user'] 
         
 
 # Swap Request Serializer

@@ -18,7 +18,6 @@ class Skill(models.Model):
         ('TEACH', 'I can Teach'),
         ('LEARN', 'I want to Learn'),
     )
-    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="skills")
     title = models.CharField(max_length=200) 
     description = models.TextField()
@@ -37,7 +36,6 @@ class SwapRequest(models.Model):
         ('COMPLETED', 'Completed'),
         ('REJECTED', 'Rejected'),
     )
-
     requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_swaps")
     provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name="received_swaps")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)

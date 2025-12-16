@@ -24,7 +24,7 @@ const CreateSkillPage = () => {
       navigate('/'); // Go back to home
     } 
     catch (err) {
-      setError('Failed to create skill. Please try again.');
+      setError('Error Creating Skill. Please refresh the page and try again.');
     } 
     finally {
       setLoading(false);
