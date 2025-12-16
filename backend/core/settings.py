@@ -91,7 +91,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ====================================================
-# SECURITY CONFIG (MASTER FIX)
+# SECURITY CONFIG 
 # ====================================================
 
 # CORS: Who can fetch data?
@@ -107,7 +107,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
 ]
 
-# 3. COOKIES: Must be Secure for Cross-Site to work
+# COOKIES: Must be Secure for Cross-Site to work
 CSRF_COOKIE_HTTPONLY = False  
 CSRF_COOKIE_SAMESITE = 'None' 
 CSRF_COOKIE_SECURE = True     

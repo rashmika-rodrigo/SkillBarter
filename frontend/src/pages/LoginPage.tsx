@@ -19,16 +19,14 @@ const LoginPage = () => {
 
     try {
       const response = await api.post('login/', { username, password });
-      // Token is available for axios.ts immediately
-      localStorage.setItem('token', response.data.token); 
+      localStorage.setItem('token', response.data.token); // Token is available for axios.ts immediately
       login(response.data); 
       window.location.href = '/'; // Redirect to home with a refresh
     } 
     catch (err) {
       console.error(err); 
       setError('Invalid username or password');
-      localStorage.removeItem('token',); 
-      localStorage.removeItem('user');
+      window.location.reload(); // refresh
     } 
     finally {
       setLoading(false);
