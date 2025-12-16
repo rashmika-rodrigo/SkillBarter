@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// Added Trash2 to imports
 import { BookOpen, GraduationCap, Handshake, X, Phone, MessageSquare, Repeat, Trash2 } from 'lucide-react';
 import type { Skill } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -12,8 +11,6 @@ interface SkillCardProps {
 const SkillCard = ({ skill }: SkillCardProps) => {
   const { user } = useAuth();
   const isTeacher = skill.category === 'TEACH';
-  
-  // Check if this card belongs to the logged-in user
   const isMySkill = user?.username === skill.user_info.username;
 
   // Modal State
@@ -25,14 +22,12 @@ const SkillCard = ({ skill }: SkillCardProps) => {
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
 
-  // Delete card function
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this skill?")) return;
 
     try {
       await api.delete(`skills/${skill.id}/`); 
       alert("Skill deleted successfully!");
-      // Simple reload to update the UI immediately
       window.location.reload(); 
     } catch (error) {
       console.error(error);
@@ -107,9 +102,18 @@ const SkillCard = ({ skill }: SkillCardProps) => {
         <h3 className="text-xl font-bold text-text mb-2 group-hover:text-primary transition-colors">
           {skill.title}
         </h3>
-        <p className="text-muted text-sm line-clamp-2 mb-4 flex-grow">
-          {skill.description}
-        </p>
+        
+        {/* SCROLLABLE DESCRIPTION AREA */}
+        <div className="flex-grow mb-4 relative">
+            <div className="h-24 overflow-y-auto pr-2 text-muted text-sm leading-relaxed 
+                [&::-webkit-scrollbar]:w-1 
+                [&::-webkit-scrollbar-track]:bg-transparent 
+                [&::-webkit-scrollbar-thumb]:bg-white/10 
+                [&::-webkit-scrollbar-thumb]:rounded-full 
+                hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+                {skill.description}
+            </div>
+        </div>
 
         {/* Footer */}
         <div className="pt-4 border-t border-white/5 flex justify-between items-center mt-auto">
@@ -117,7 +121,6 @@ const SkillCard = ({ skill }: SkillCardProps) => {
             {new Date(skill.created_at).toLocaleDateString()}
           </span>
           
-          {/* LOGIC: Show Delete if it's mine, otherwise Show Swap */}
           {isMySkill ? (
             <button 
               onClick={handleDelete} 
