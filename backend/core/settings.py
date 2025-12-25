@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import dj_database_url
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',  
     'corsheaders',
     'api',
 ]
@@ -71,7 +73,7 @@ DATABASES = {
 }
 
 # ====================================================
-# AUTH
+# AUTH USER MODEL
 # ====================================================
 AUTH_USER_MODEL = 'api.User'
 AUTH_PASSWORD_VALIDATORS = [
@@ -95,38 +97,35 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # ====================================================
 
 # CORS: Who can fetch data?
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True 
 CORS_ALLOWED_ORIGINS = [
     "https://skillbarter-webapp.onrender.com", 
     "http://localhost:5173",
 ]
 
-# CSRF: Who can submit forms?
-CSRF_TRUSTED_ORIGINS = [
-    "https://skillbarter-webapp.onrender.com", 
-    "http://localhost:5173",
-]
-
-# COOKIES: Must be Secure for Cross-Site to work
-CSRF_COOKIE_HTTPONLY = False  
-CSRF_COOKIE_SAMESITE = 'None' 
-CSRF_COOKIE_SECURE = True     
-
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True  
-
 # PROXY: Trust Render's HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True 
+SECURE_SSL_REDIRECT = not DEBUG
 
 # ====================================================
-# DRF CONFIG
+# DRF CONFIG (The Switch)
 # ====================================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
+
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+}
+
+# ====================================================
+# JWT SETTINGS
+# ====================================================
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Token expires in 1 hour
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Login lasts 1 day
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }

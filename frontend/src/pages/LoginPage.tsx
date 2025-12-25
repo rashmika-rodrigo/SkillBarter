@@ -4,6 +4,16 @@ import { Shield, Lock, User as UserIcon, AlertCircle, ArrowRight } from 'lucide-
 import api from '../lib/axios';
 import { useAuth } from '../context/AuthContext';
 
+// Helper to extract User ID from the JWT Token
+const parseJwt = (token: string) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } 
+  catch (e) {
+    return null;
+  }
+};
+
 const LoginPage = () => {
   const { login } = useAuth(); 
 
@@ -18,15 +28,37 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('login/', { username, password });
-      localStorage.setItem('token', response.data.token); // Token is available for axios.ts immediately
-      login(response.data); 
-      window.location.href = '/'; // Redirect to home with a refresh
+      // Get Tokens (Access + Refresh)
+      const response = await api.post('token/', { username, password });
+      
+      const { access, refresh } = response.data;
+      
+      // Save Tokens
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+
+      // Decode Token to get User ID
+      const decoded = parseJwt(access);
+      const userId = decoded?.user_id;
+
+      if (userId) {
+        // Fetch Full User Profile (Karma, Email, etc.)
+        const userResponse = await api.get(`users/${userId}/`, {
+           headers: { Authorization: `Bearer ${access}` } 
+        });
+        
+        // Login to Context
+        login(userResponse.data);
+        window.location.href = '/'; 
+      } 
+      else {
+        throw new Error("Invalid Token");
+      }
+
     } 
     catch (err) {
       console.error(err); 
       setError('Invalid username or password');
-      window.location.reload(); // refresh
     } 
     finally {
       setLoading(false);
@@ -39,7 +71,7 @@ const LoginPage = () => {
       
       <div className="mb-8 text-center">
         <div className="mx-auto w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-4">
-          <Shield className="w-6 h-6 text-primary" />
+          <div className="text-primary"><Shield size={24} /></div>
         </div>
         <h2 className="text-3xl font-bold text-text">Welcome back</h2>
         <p className="mt-2 text-sm text-muted">Sign in to your SkillBarter account</p>

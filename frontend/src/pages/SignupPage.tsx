@@ -23,15 +23,20 @@ const SignupPage = () => {
     try {
       const response = await api.post('register/', formData); 
       
-      // Save token for Axios 
-      if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
+      const { user, access, refresh } = response.data;
+
+      // Save tokens 
+      if (access && refresh) {
+          localStorage.setItem('access_token', access);
+          localStorage.setItem('refresh_token', refresh);
       }
       
-      login(response.data); 
+      login(user); 
+
       window.location.href = '/'; 
     } 
     catch (err: any) {
+      console.error(err);
       setError(err.response?.data?.error || 'Error in Registration');
     } 
     finally {
@@ -44,7 +49,7 @@ const SignupPage = () => {
     <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="mb-8 text-center">
         <div className="mx-auto w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-4">
-          <Shield className="w-6 h-6 text-primary" />
+          <div className="text-primary"><Shield size={24} /></div>
         </div>
         <h2 className="text-3xl font-bold text-text">Create an account</h2>
         <p className="mt-2 text-sm text-muted">Join the SkillBarter community today</p>
@@ -62,7 +67,9 @@ const SignupPage = () => {
           <div>
             <label className="block text-sm font-medium text-muted mb-1">Username</label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute left-3 top-3 pointer-events-none">
+                <UserIcon className="h-5 w-5 text-muted" />
+              </div>
               <input
                 type="text"
                 required
@@ -78,7 +85,9 @@ const SignupPage = () => {
           <div>
             <label className="block text-sm font-medium text-muted mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute left-3 top-3 pointer-events-none">
+                 <Mail className="h-5 w-5 text-muted" />
+              </div>
               <input
                 type="email"
                 required
@@ -94,7 +103,9 @@ const SignupPage = () => {
           <div>
             <label className="block text-sm font-medium text-muted mb-1">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute left-3 top-3 pointer-events-none">
+                <Lock className="h-5 w-5 text-muted" />
+              </div>
               <input
                 type="password"
                 required

@@ -1,13 +1,11 @@
-from django.http import JsonResponse
-from django.middleware.csrf import get_token
-from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken 
+
 from .models import User, Skill, SwapRequest
 from .serializers import UserSerializer, SkillSerializer, SwapRequestSerializer
 
@@ -20,6 +18,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all().order_by('-created_at')
     serializer_class = SkillSerializer
+    # Automatically uses the JWT Settings from settings.py
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
@@ -61,24 +60,6 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@ensure_csrf_cookie 
-def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    user = authenticate(username=username, password=password)
-    
-    if user is not None:
-        login(request, user)
-        response = Response(UserSerializer(user).data)
-        get_token(request) # Force token refresh
-        return response
-    else:
-        return Response({"error": "Invalid Credentials"}, status=400)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-@ensure_csrf_cookie 
 def register_view(request):
     username = request.data.get('username')
     email = request.data.get('email')
@@ -87,15 +68,15 @@ def register_view(request):
     if User.objects.filter(username=username).exists():
         return Response({"error": "Username already exists"}, status=400)
     
+    # Create the user
     user = User.objects.create_user(username=username, email=email, password=password)
-    login(request, user)
-    return Response(UserSerializer(user).data, status=201)
+    
+    # Generate Tokens Manually (So they are logged in immediately)
+    refresh = RefreshToken.for_user(user)
 
-
-# ================= SYSTEM (The Handshake) =================
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-@ensure_csrf_cookie 
-def get_csrf_token(request):
-    return JsonResponse({'csrfToken': get_token(request)})
+    # Return User Data + Tokens
+    return Response({
+        'user': UserSerializer(user).data,
+        'access': str(refresh.access_token),
+        'refresh': str(refresh)
+    }, status=201)
